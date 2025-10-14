@@ -1,0 +1,14 @@
+fixes:
+  - id: 1
+    explanation: "Attempting to sanitize user input with a regex pattern and escaping is unreliable. Attackers can find ways to bypass such filters using encoding, Unicode characters, or alternative injection vectors."
+  - id: 2
+    explanation: "While HTML entity encoding prevents XSS, it doesn't prevent SSTI because the username is still interpolated into the Pug template before compilation. The eval() call for challenge detection remains a critical vulnerability."
+  - id: 3
+    explanation: "Using a Content Security Policy helps mitigate some XSS attacks but does nothing to prevent server-side template injection or the eval() vulnerability that executes arbitrary JavaScript on the server."
+  - id: 4
+    explanation: "The correct fix is to completely remove the eval() call and pass the username as a variable to the compiled template function rather than interpolating it into the template string. Use pug.compile() with proper variable passing to prevent template injection."
+hints:
+  - "Find where the username is being processed and look for dangerous operations."
+  - "The eval() function executes arbitrary JavaScript code. Is there ever a safe way to use it with user input?"
+  - "Notice how username is being inserted into the template string with .replace(). Is this safe?"
+  - "How should data be passed to template engines to prevent injection?"

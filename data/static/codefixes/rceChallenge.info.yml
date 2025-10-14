@@ -1,0 +1,14 @@
+fixes:
+  - id: 1
+    explanation: "This code still uses vm.runInContext with user-provided data, which can be exploited. The sandbox is insufficient to prevent escape techniques that sophisticated attackers can employ."
+  - id: 2
+    explanation: "While removing the vm.runInContext call is good, this fix still processes the user input with safeEval, which has known bypass techniques and should not be trusted for security-critical operations."
+  - id: 3
+    explanation: "This approach validates the input format but still executes it. Input validation alone is insufficient when dealing with code execution vulnerabilities as attackers can craft valid-looking but malicious payloads."
+  - id: 4
+    explanation: "The correct fix is to completely avoid executing user-provided code. Instead, parse and validate the data structure using JSON.parse() or a schema validator, which safely deserializes data without executing any code."
+hints:
+  - "Identify where user input (orderLinesData) is being processed in an unsafe manner."
+  - "Look for functions that execute or evaluate code: eval(), vm.runInContext(), safeEval()."
+  - "Consider: is there any scenario where executing user-provided code as JavaScript is safe?"
+  - "What's the safest way to handle structured data from users?"
