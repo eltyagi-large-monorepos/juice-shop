@@ -39,9 +39,11 @@ function handleZipFileUpload ({ file }: Request, res: Response, next: NextFuncti
               .pipe(unzipper.Parse())
               .on('entry', function (entry: any) {
                 const fileName = entry.path
-                // Fixed: Improved path traversal protection
+                // Fixed: Properly sanitize path to prevent zipslip attacks
+                // Remove any directory traversal sequences
+                const sanitizedFileName = path.normalize(fileName).replace(/^(\.\.(\/|\\|$))+/, '')
                 const uploadDir = path.resolve('uploads/complaints')
-                const absolutePath = path.resolve(uploadDir, fileName)
+                const absolutePath = path.resolve(uploadDir, sanitizedFileName)
                 challengeUtils.solveIf(challenges.fileWriteChallenge, () => { return absolutePath === path.resolve('ftp/legal.md') })
                 // Only allow files within the uploads/complaints directory
                 if (absolutePath.startsWith(uploadDir + path.sep) || absolutePath === uploadDir) {
