@@ -5,6 +5,7 @@ import * as challengeUtils from '../lib/challengeUtils'
 import { nftABI } from '../data/static/contractABIs'
 import { challenges } from '../data/datacache'
 import * as utils from '../lib/utils'
+import logger from '../lib/logger'
 
 const nftAddress = '0x41427790c94E7a592B17ad694eD9c06A02bb9C39'
 const addressesMinted = new Set()
@@ -25,7 +26,8 @@ export function nftMintListener () {
       }
       res.status(200).json({ success: true, message: 'Event Listener Created' })
     } catch (error) {
-      res.status(500).json(utils.getErrorMessage(error))
+      logger.error('Error in nftMintListener:', error)
+      res.status(500).json({ error: 'An error occurred while processing your request' })
     }
   }
 }
@@ -42,7 +44,8 @@ export function walletNFTVerify () {
         res.status(200).json({ success: false, message: 'Wallet did not mint the NFT', status: challenges.nftMintChallenge })
       }
     } catch (error) {
-      res.status(500).json(utils.getErrorMessage(error))
+      logger.error('Error in walletNFTVerify:', error)
+      res.status(500).json({ error: 'An error occurred while processing your request' })
     }
   }
 }
