@@ -10,8 +10,16 @@ export function serveQuarantineFiles () {
   return ({ params, query }: Request, res: Response, next: NextFunction) => {
     const file = params.file
 
-    if (!file.includes('/')) {
-      res.sendFile(path.resolve('ftp/quarantine/', file))
+    if (!file.includes('/') && !file.includes('\\')) {
+      const quarantineDir = path.resolve('ftp/quarantine/')
+      const filePath = path.resolve(quarantineDir, file)
+      // Validate that the resolved path is within the quarantine directory
+      if (filePath.startsWith(quarantineDir)) {
+        res.sendFile(filePath)
+      } else {
+        res.status(403)
+        next(new Error('Access denied!'))
+      }
     } else {
       res.status(403)
       next(new Error('File names cannot contain forward slashes!'))
