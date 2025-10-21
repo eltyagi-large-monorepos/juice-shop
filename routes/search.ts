@@ -18,7 +18,14 @@ class ErrorWithParent extends Error {
 // vuln-code-snippet start unionSqlInjectionChallenge dbSchemaChallenge
 export function searchProducts () {
   return (req: Request, res: Response, next: NextFunction) => {
+    // Fix Type Confusion: Ensure criteria is always a string
     let criteria: any = req.query.q === 'undefined' ? '' : req.query.q ?? ''
+    // Handle array input - take first element or convert to empty string
+    if (Array.isArray(criteria)) {
+      criteria = criteria[0] ?? ''
+    }
+    // Ensure criteria is a string
+    criteria = String(criteria)
     criteria = (criteria.length <= 200) ? criteria : criteria.substring(0, 200)
     models.sequelize.query(`SELECT * FROM Products WHERE ((name LIKE '%${criteria}%' OR description LIKE '%${criteria}%') AND deletedAt IS NULL) ORDER BY name`) // vuln-code-snippet vuln-line unionSqlInjectionChallenge dbSchemaChallenge
       .then(([products]: any) => {
