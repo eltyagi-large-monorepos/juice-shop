@@ -133,12 +133,12 @@ export const redirectAllowlist = new Set([
 ])
 
 export const isRedirectAllowed = (url: string) => {
-  // Fix Type Confusion: Ensure url is always a string
+  // Fix Type Confusion: Ensure url is always a string when it's an array
   let urlStr: string
   if (Array.isArray(url)) {
     urlStr = url[0] ?? ''
   } else {
-    urlStr = String(url)
+    urlStr = url
   }
 
   let allowed = false
