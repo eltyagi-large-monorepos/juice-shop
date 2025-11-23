@@ -74,9 +74,8 @@ describe('/profile', () => {
       cy.visit('http://htmledit.squarefree.com')
       /* The script executed below is equivalent to pasting this string into http://htmledit.squarefree.com: */
       /* <form action="http://localhost:3000/profile" method="POST"><input type="hidden" name="username" value="CSRF"/><input type="submit"/></form><script>document.forms[0].submit();</script> */
-      let document: any
-      cy.window().then(() => {
-        document
+      cy.window().then((win) => {
+        win.document
           .getElementsByName('editbox')[0]
           .contentDocument.getElementsByName(
             'ta'
