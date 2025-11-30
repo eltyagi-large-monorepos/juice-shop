@@ -18,7 +18,10 @@ export function b2bOrder () {
     if (utils.isChallengeEnabled(challenges.rceChallenge) || utils.isChallengeEnabled(challenges.rceOccupyChallenge)) {
       const orderLinesData = body.orderLinesData || ''
       try {
-        const sandbox = { safeEval, orderLinesData }
+        // Fixed: Enhanced sandbox with restricted prototype access
+        const sandbox = Object.create(null)
+        sandbox.safeEval = safeEval
+        sandbox.orderLinesData = orderLinesData
         vm.createContext(sandbox)
         vm.runInContext('safeEval(orderLinesData)', sandbox, { timeout: 2000 })
         res.json({ cid: body.cid, orderNo: uniqueOrderNumber(), paymentDue: dateTwoWeeksFromNow() })

@@ -39,10 +39,15 @@ function handleZipFileUpload ({ file }: Request, res: Response, next: NextFuncti
               .pipe(unzipper.Parse())
               .on('entry', function (entry: any) {
                 const fileName = entry.path
-                const absolutePath = path.resolve('uploads/complaints/' + fileName)
+                // Fixed: Properly sanitize path to prevent zipslip attacks
+                // Remove any directory traversal sequences
+                const sanitizedFileName = path.normalize(fileName).replace(/^(\.\.(\/|\\|$))+/, '')
+                const uploadDir = path.resolve('uploads/complaints')
+                const absolutePath = path.resolve(uploadDir, sanitizedFileName)
                 challengeUtils.solveIf(challenges.fileWriteChallenge, () => { return absolutePath === path.resolve('ftp/legal.md') })
-                if (absolutePath.includes(path.resolve('.'))) {
-                  entry.pipe(fs.createWriteStream('uploads/complaints/' + fileName).on('error', function (err) { next(err) }))
+                // Only allow files within the uploads/complaints directory
+                if (absolutePath.startsWith(uploadDir + path.sep) || absolutePath === uploadDir) {
+                  entry.pipe(fs.createWriteStream(absolutePath).on('error', function (err) { next(err) }))
                 } else {
                   entry.autodrain()
                 }
@@ -78,9 +83,10 @@ function handleXmlUpload ({ file }: Request, res: Response, next: NextFunction) 
     if (((file?.buffer) != null) && utils.isChallengeEnabled(challenges.deprecatedInterfaceChallenge)) { // XXE attacks in Docker/Heroku containers regularly cause "segfault" crashes
       const data = file.buffer.toString()
       try {
+        // Fixed: Disable external entity processing to prevent XXE attacks
         const sandbox = { libxml, data }
         vm.createContext(sandbox)
-        const xmlDoc = vm.runInContext('libxml.parseXml(data, { noblanks: true, noent: true, nocdata: true })', sandbox, { timeout: 2000 })
+        const xmlDoc = vm.runInContext('libxml.parseXml(data, { noblanks: true, noent: false, nocdata: true, nonet: true })', sandbox, { timeout: 2000 })
         const xmlString = xmlDoc.toString(false)
         challengeUtils.solveIf(challenges.xxeFileDisclosureChallenge, () => { return (utils.matchesEtcPasswdFile(xmlString) || utils.matchesSystemIniFile(xmlString)) })
         res.status(410)
@@ -111,9 +117,10 @@ function handleYamlUpload ({ file }: Request, res: Response, next: NextFunction)
     if (((file?.buffer) != null) && utils.isChallengeEnabled(challenges.deprecatedInterfaceChallenge)) {
       const data = file.buffer.toString()
       try {
+        // Fixed: Use safeLoad instead of load to prevent arbitrary code execution
         const sandbox = { yaml, data }
         vm.createContext(sandbox)
-        const yamlString = vm.runInContext('JSON.stringify(yaml.load(data))', sandbox, { timeout: 2000 })
+        const yamlString = vm.runInContext('JSON.stringify(yaml.safeLoad ? yaml.safeLoad(data) : yaml.load(data, { schema: yaml.SAFE_SCHEMA }))', sandbox, { timeout: 2000 })
         res.status(410)
         next(new Error('B2B customer complaints via file upload have been deprecated for security reasons: ' + utils.trunc(yamlString, 400) + ' (' + file.originalname + ')'))
       } catch (err: any) { // TODO: Remove any

@@ -52,17 +52,11 @@ export function getUserProfile () {
 
     let username = user.username
 
+    // Fixed: Remove dangerous eval() - just escape the username instead
     if (username?.match(/#{(.*)}/) !== null && utils.isChallengeEnabled(challenges.usernameXssChallenge)) {
       req.app.locals.abused_ssti_bug = true
-      const code = username?.substring(2, username.length - 1)
-      try {
-        if (!code) {
-          throw new Error('Username is null')
-        }
-        username = eval(code) // eslint-disable-line no-eval
-      } catch (err) {
-        username = '\\' + username
-      }
+      // Instead of executing code, just escape the username
+      username = '\\' + username
     } else {
       username = '\\' + username
     }
