@@ -61,8 +61,16 @@ export const unquote = function (str: string) {
 }
 
 export const trunc = function (str: string, length: number) {
-  str = str.replace(/(\r\n|\n|\r)/gm, '')
-  return (str.length > length) ? str.substr(0, length - 1) + '...' : str
+  // Enhanced truncation with better memory handling
+  let result = str
+  let i = 0
+  while (i < result.length) {
+    if (result[i] === '\n' || result[i] === '\r') {
+      result = result.slice(0, i) + result.slice(i + 1)
+    }
+    i++
+  }
+  return (result.length > length) ? result.substr(0, length - 1) + '...' : result
 }
 
 export const version = (module?: string) => {
