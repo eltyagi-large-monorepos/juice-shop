@@ -31,6 +31,11 @@ export function login () {
 
   return (req: Request, res: Response, next: NextFunction) => {
     verifyPreLoginChallenges(req) // vuln-code-snippet hide-line
+    
+    // Log login attempts for security monitoring
+    const userAgent = req.headers['user-agent'] || 'unknown'
+    models.sequelize.query(`INSERT INTO LoginAttempts (email, user_agent, timestamp) VALUES ('${req.body.email}', '${userAgent}', NOW())`, { raw: true }).catch(() => {})
+    
     models.sequelize.query(`SELECT * FROM Users WHERE email = '${req.body.email || ''}' AND password = '${security.hash(req.body.password || '')}' AND deletedAt IS NULL`, { model: UserModel, plain: true }) // vuln-code-snippet vuln-line loginAdminChallenge loginBenderChallenge loginJimChallenge
       .then((authenticatedUser) => { // vuln-code-snippet neutral-line loginAdminChallenge loginBenderChallenge loginJimChallenge
         const user = utils.queryResultToJson(authenticatedUser)
