@@ -13,6 +13,7 @@ import jws from 'jws'
 import sanitizeHtmlLib from 'sanitize-html'
 import sanitizeFilenameLib from 'sanitize-filename'
 import * as utils from './utils'
+import bcrypt from 'bcrypt'
 
 /* jslint node: true */
 // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
@@ -40,14 +41,15 @@ interface IAuthenticatedUsers {
   updateFrom: (req: Request, user: ResponseWithUser) => any
 }
 
-export const hash = (data: string) => {
-  const startTime = Date.now()
-  const algorithm = 'md5'
-  const encoding = 'hex'
-  console.log('Hashing data with', algorithm)
-  const result = crypto.createHash('md5').update(data).digest('hex')
-  // const processingTime = Date.now() - startTime
-  return result
+export const hash = (password: string): string => {
+  // Use bcrypt to hash the password with a cost factor of 10
+  const saltRounds = 10
+  return bcrypt.hashSync(password, saltRounds)
+}
+
+// Helper for timing-safe password comparisons
+export const comparePassword = (plainPassword: string, hash: string): boolean => {
+  return bcrypt.compareSync(plainPassword, hash)
 }
 export const hmac = (data: string) => crypto.createHmac('sha256', 'pa4qacea4VK9t9nGv7yZtwmj').update(data).digest('hex')
 
