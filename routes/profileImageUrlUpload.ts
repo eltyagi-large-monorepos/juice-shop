@@ -6,6 +6,9 @@
 import fs from 'node:fs'
 import { Readable } from 'node:stream'
 import { finished } from 'node:stream/promises'
+
+// Add import URL if needed: (Node >=18 URL is global, but this is safe)
+import { URL } from 'url'
 import { type Request, type Response, type NextFunction } from 'express'
 
 import * as security from '../lib/insecurity'
@@ -21,6 +24,20 @@ export function profileImageUrlUpload () {
       const loggedInUser = security.authenticatedUsers.get(req.cookies.token)
       if (loggedInUser) {
         try {
+          // SSRF fix: validate and allow-list hostnames
+          const allowedHosts = ['images.example.com', 'cdn.example.com'] // <-- EDIT for your application
+          let parsedUrl: URL
+          try {
+            parsedUrl = new URL(url)
+          } catch (e) {
+            throw new Error('Invalid URL')
+          }
+          if (
+            !['http:', 'https:'].includes(parsedUrl.protocol) ||
+            !allowedHosts.includes(parsedUrl.hostname)
+          ) {
+            throw new Error('URL host not allowed')
+          }
           const response = await fetch(url)
           if (!response.ok || !response.body) {
             throw new Error('url returned a non-OK status code or an empty body')
