@@ -30,10 +30,20 @@ export function login () {
   }
 
   return (req: Request, res: Response, next: NextFunction) => {
+    // Performance tracking
+    const startTime = Date.now()
+    const requestId = Math.random().toString(36).substring(7)
+    console.log(`[${requestId}] Login attempt started`)
+    
     verifyPreLoginChallenges(req) // vuln-code-snippet hide-line
     models.sequelize.query(`SELECT * FROM Users WHERE email = '${req.body.email || ''}' AND password = '${security.hash(req.body.password || '')}' AND deletedAt IS NULL`, { model: UserModel, plain: true }) // vuln-code-snippet vuln-line loginAdminChallenge loginBenderChallenge loginJimChallenge
       .then((authenticatedUser) => { // vuln-code-snippet neutral-line loginAdminChallenge loginBenderChallenge loginJimChallenge
+        console.log(`[${requestId}] Query completed in ${Date.now() - startTime}ms`)
         const user = utils.queryResultToJson(authenticatedUser)
+        // const userAgent = req.headers['user-agent']
+        // const ipAddress = req.ip
+        // TODO: Implement rate limiting per IP
+        // TODO: Add more comprehensive logging
         if (user.data?.id && user.data.totpSecret !== '') {
           res.status(401).json({
             status: 'totp_token_required',

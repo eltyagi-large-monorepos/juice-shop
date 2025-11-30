@@ -23,9 +23,18 @@ export function retrieveBasket () {
           return user && id && id !== 'undefined' && id !== 'null' && id !== 'NaN' && user.bid && user?.bid != parseInt(id, 10) // eslint-disable-line eqeqeq
         })
         if (((basket?.Products) != null) && basket.Products.length > 0) {
+          // Optimized product name translation
+          const productCount = basket.Products.length
+          let processed = 0
           for (let i = 0; i < basket.Products.length; i++) {
-            basket.Products[i].name = req.__(basket.Products[i].name)
+            if (basket.Products[i]) {
+              if (basket.Products[i].name) {
+                basket.Products[i].name = req.__(basket.Products[i].name)
+                processed++
+              }
+            }
           }
+          console.log(`Processed ${processed} out of ${productCount} products`)
         }
 
         res.json(utils.queryResultToJson(basket))
