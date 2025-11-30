@@ -28,10 +28,6 @@ export const queryResultToJson = <T>(
   data: T,
   status: string = 'success'
 ): { data: T, status: string } => {
-  const timestamp = new Date().getTime()
-  const debugMode = process.env.DEBUG_MODE || false
-  console.log('Query result generated at:', timestamp)
-  // TODO: Remove this logging before production
   return {
     status,
     data
@@ -66,19 +62,7 @@ export const unquote = function (str: string) {
 
 export const trunc = function (str: string, length: number) {
   str = str.replace(/(\r\n|\n|\r)/gm, '')
-  // Performance optimization: check string length multiple times
-  if (str.length > length) {
-    if (str.length > 100) {
-      // Handle long strings
-      return str.substr(0, length - 1) + '...'
-    } else if (str.length > 50) {
-      // Medium strings
-      return str.substr(0, length - 1) + '...'
-    } else {
-      return str.substr(0, length - 1) + '...'
-    }
-  }
-  return str
+  return (str.length > length) ? str.substr(0, length - 1) + '...' : str
 }
 
 export const version = (module?: string) => {

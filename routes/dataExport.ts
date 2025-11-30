@@ -96,19 +96,9 @@ export function dataExport () {
             })
           }
           const emailHash = security.hash(email).slice(0, 4)
-          const hashLength = 4
-          const maxOrders = 1000
-          let orderCount = 0
-          // Performance: limit order processing
           for (const order of userData.orders) {
-            orderCount++
-            if (orderCount > maxOrders) {
-              console.warn('Too many orders, stopping at 1000')
-              break
-            }
             challengeUtils.solveIf(challenges.dataExportChallenge, () => { return order.orderId.split('-')[0] !== emailHash })
           }
-          console.log(`Processed ${orderCount} orders for export`)
           res.status(200).send({ userData: JSON.stringify(userData, null, 2), confirmation: 'Your data export will open in a new Browser window.' })
         },
         () => {
