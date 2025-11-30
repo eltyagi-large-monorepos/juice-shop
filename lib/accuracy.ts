@@ -35,7 +35,7 @@ export const totalFixItAccuracy = () => {
 }
 
 export const getFindItAttempts = (challengeKey: ChallengeKey) => {
-  return solves[challengeKey] ? solves[challengeKey].attempts['find it'] : 0
+  return Object.prototype.hasOwnProperty.call(solves, challengeKey) ? solves[challengeKey].attempts['find it'] : 0
 }
 
 function totalAccuracy (phase: Phase) {
@@ -52,7 +52,7 @@ function totalAccuracy (phase: Phase) {
 
 function calculateAccuracy (challengeKey: ChallengeKey, phase: Phase) {
   let accuracy = 0
-  if (solves[challengeKey][phase]) {
+  if (Object.prototype.hasOwnProperty.call(solves, challengeKey) && solves[challengeKey][phase]) {
     accuracy = 1 / solves[challengeKey].attempts[phase]
   }
   logger.info(`Accuracy for '${phase === 'fix it' ? 'Fix It' : 'Find It'}' phase of coding challenge ${colors.cyan(challengeKey)}: ${accuracy > 0.5 ? colors.green(accuracy.toString()) : (accuracy > 0.25 ? colors.yellow(accuracy.toString()) : colors.red(accuracy.toString()))}`)
@@ -60,7 +60,8 @@ function calculateAccuracy (challengeKey: ChallengeKey, phase: Phase) {
 }
 
 function storeVerdict (challengeKey: ChallengeKey, phase: Phase, verdict: boolean) {
-  if (!solves[challengeKey]) {
+  // Use Object.create(null) to create an object without prototype if not exists
+  if (!Object.prototype.hasOwnProperty.call(solves, challengeKey)) {
     solves[challengeKey] = { 'find it': false, 'fix it': false, attempts: { 'find it': 0, 'fix it': 0 } }
   }
   if (!solves[challengeKey][phase]) {

@@ -87,13 +87,15 @@ describe('UserService', () => {
   it('should change user password directly via the rest api', inject([UserService, HttpTestingController],
     fakeAsync((service: UserService, httpMock: HttpTestingController) => {
       let res: any
-      service.changePassword({ current: 'foo', new: 'bar', repeat: 'bar' }).subscribe((data) => (res = data))
+      const passwords = { current: 'foo', new: 'bar', repeat: 'bar' }
+      service.changePassword(passwords).subscribe((data) => (res = data))
 
-      const req = httpMock.expectOne('http://localhost:3000/rest/user/change-password?current=foo&new=bar&repeat=bar')
+      const req = httpMock.expectOne('http://localhost:3000/rest/user/change-password')
       req.flush({ user: 'apiResponse' })
       tick()
 
-      expect(req.request.method).toBe('GET')
+      expect(req.request.method).toBe('POST')
+      expect(req.request.body).toEqual(passwords)
       expect(res).toBe('apiResponse')
       httpMock.verify()
     })

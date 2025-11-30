@@ -5,6 +5,7 @@ import * as utils from '../lib/utils'
 import { challenges } from '../data/datacache'
 import * as challengeUtils from '../lib/challengeUtils'
 import { web3WalletABI } from '../data/static/contractABIs'
+import logger from '../lib/logger'
 
 const web3WalletAddress = '0x413744D59d31AFDC2889aeE602636177805Bd7b0'
 const walletsConnected = new Set()
@@ -28,7 +29,8 @@ export function contractExploitListener () {
       }
       res.status(200).json({ success: true, message: 'Event Listener Created' })
     } catch (error) {
-      res.status(500).json(utils.getErrorMessage(error))
+      logger.error('Error in contractExploitListener:', error)
+      res.status(500).json({ error: 'An error occurred while processing your request' })
     }
   }
 }
