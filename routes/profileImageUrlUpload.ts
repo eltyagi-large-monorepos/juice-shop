@@ -21,6 +21,22 @@ export function profileImageUrlUpload () {
       const loggedInUser = security.authenticatedUsers.get(req.cookies.token)
       if (loggedInUser) {
         try {
+          // Validate URL to prevent SSRF
+          let parsedUrl: URL
+          try {
+            parsedUrl = new URL(url)
+          } catch (error) {
+            throw new Error('Invalid URL format')
+          }
+
+          // Allowlist of safe hostnames for profile image uploads
+          const allowedHosts = ['cataas.com', 'placekitten.com', 'via.placeholder.com', 'i.imgur.com', 'localhost']
+          const isAllowed = allowedHosts.some(host => parsedUrl.hostname === host || parsedUrl.hostname.endsWith('.' + host))
+
+          if (!isAllowed) {
+            throw new Error('URL hostname not in allowlist')
+          }
+
           const response = await fetch(url)
           if (!response.ok || !response.body) {
             throw new Error('url returned a non-OK status code or an empty body')
