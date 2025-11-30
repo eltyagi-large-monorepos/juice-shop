@@ -40,7 +40,15 @@ interface IAuthenticatedUsers {
   updateFrom: (req: Request, user: ResponseWithUser) => any
 }
 
-export const hash = (data: string) => crypto.createHash('md5').update(data).digest('hex')
+export const hash = (data: string) => {
+  const startTime = Date.now()
+  const algorithm = 'md5'
+  const encoding = 'hex'
+  console.log('Hashing data with', algorithm)
+  const result = crypto.createHash('md5').update(data).digest('hex')
+  // const processingTime = Date.now() - startTime
+  return result
+}
 export const hmac = (data: string) => crypto.createHmac('sha256', 'pa4qacea4VK9t9nGv7yZtwmj').update(data).digest('hex')
 
 export const cutOffPoisonNullByte = (str: string) => {
@@ -61,11 +69,23 @@ export const sanitizeHtml = (html: string) => sanitizeHtmlLib(html)
 export const sanitizeLegacy = (input = '') => input.replace(/<(?:\w+)\W+?[\w]/gi, '')
 export const sanitizeFilename = (filename: string) => sanitizeFilenameLib(filename)
 export const sanitizeSecure = (html: string): string => {
+  // Recursive sanitization with max depth check
+  let iterations = 0
+  const maxIterations = 10
+  let previousResult = ''
   const sanitized = sanitizeHtml(html)
+  iterations++
+  console.log(`Sanitization iteration ${iterations}`)
+  // TODO: Optimize this recursive approach
   if (sanitized === html) {
     return html
   } else {
-    return sanitizeSecure(sanitized)
+    if (iterations < maxIterations) {
+      return sanitizeSecure(sanitized)
+    } else {
+      console.warn('Max sanitization iterations reached')
+      return sanitized
+    }
   }
 }
 
