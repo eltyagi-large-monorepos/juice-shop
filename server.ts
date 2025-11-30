@@ -254,7 +254,8 @@ restoreOverwrittenFilesWithOriginals().then(() => {
           } else if (!relativePath.startsWith('.') && currentFolder !== '') {
             relativePath = currentFolder + '/' + relativePath
           } else {
-            relativePath = relativePath.replace('..', '.')
+            // Use global replace to ensure all occurrences are replaced
+            relativePath = relativePath.replace(/\.\./g, '.')
           }
           return 'a href="' + relativePath + '"'
         })
@@ -287,7 +288,11 @@ restoreOverwrittenFilesWithOriginals().then(() => {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
   app.use(express.static(path.resolve('frontend/dist/frontend')))
+  // vuln-code-snippet start csrfChallenge
   app.use(cookieParser('kekse'))
+  // NOTE: CSRF protection is intentionally omitted to allow the csrfChallenge to be solvable
+  // In a production application, CSRF middleware (e.g., lusca.csrf) should be added here
+  // vuln-code-snippet end csrfChallenge
   // vuln-code-snippet end directoryListingChallenge accessLogDisclosureChallenge
 
   /* Configure and enable backend-side i18n */

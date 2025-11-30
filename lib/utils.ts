@@ -45,7 +45,8 @@ export const endsWith = (str?: string, suffix?: string) => (str && suffix) ? str
 export const contains = (str: string, element: string) => str ? str.includes(element) : false // TODO Inline all usages as this function is not adding any functionality to String.includes
 
 export const containsEscaped = function (str: string, element: string) {
-  return contains(str, element.replace(/"/g, '\\"'))
+  // Properly escape backslashes first, then quotes
+  return contains(str, element.replace(/\\/g, '\\\\').replace(/"/g, '\\"'))
 }
 
 export const containsOrEscaped = function (str: string, element: string) {
