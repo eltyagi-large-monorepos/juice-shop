@@ -23,8 +23,8 @@ async function retrieveUserList (req: Request, res: Response, next: NextFunction
 
         return {
           ...user.dataValues,
-          password: user.password?.replace(/./g, '*'),
-          totpSecret: user.totpSecret?.replace(/./g, '*'),
+          password: user.password,
+          totpSecret: user.totpSecret,
           lastLoginTime
         }
       })
