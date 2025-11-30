@@ -133,6 +133,10 @@ export const redirectAllowlist = new Set([
 ])
 
 export const isRedirectAllowed = (url: string) => {
+  // Fix: Prevent type confusion, only allow runtime strings
+  if (typeof url !== 'string') {
+    return false
+  }
   let allowed = false
   for (const allowedUrl of redirectAllowlist) {
     allowed = allowed || url.includes(allowedUrl) // vuln-code-snippet vuln-line redirectChallenge
