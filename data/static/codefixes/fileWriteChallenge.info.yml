@@ -1,0 +1,14 @@
+fixes:
+  - id: 1
+    explanation: "Simply checking if the path contains '..' is insufficient. Attackers can bypass this using URL encoding (%2e%2e), Unicode encoding, or absolute paths that don't need '../' to escape the intended directory."
+  - id: 2
+    explanation: "While path.normalize() helps with some path traversal attempts, it doesn't prevent absolute paths or paths that use symlinks. An attacker could still write to unintended locations."
+  - id: 3
+    explanation: "Checking if the path starts with the base directory is better, but this check happens after path.resolve() which may have already resolved symlinks or relative paths in unexpected ways."
+  - id: 4
+    explanation: "The correct fix validates that the resolved absolute path is within the intended directory using path.resolve() and checks containment before any file operations. It also uses path.basename() to strip directory components from the filename entirely."
+hints:
+  - "Look at how fileName is extracted from the ZIP entry and used to construct the file path."
+  - "The path.resolve() function converts a path to an absolute path. When is this check performed?"
+  - "What could an attacker put in fileName to write outside the uploads/complaints/ directory?"
+  - "How can you ensure a file path is within a specific directory before writing to it?"

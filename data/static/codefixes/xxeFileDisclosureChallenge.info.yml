@@ -1,0 +1,14 @@
+fixes:
+  - id: 1
+    explanation: "This fix attempts to filter out known XXE payloads using a blocklist approach, but attackers can easily bypass simple pattern matching with encoding, obfuscation, or alternative XXE techniques."
+  - id: 2
+    explanation: "Setting a timeout helps prevent Denial of Service from billion laughs attacks, but does not prevent information disclosure through external entity references. The XML parser is still configured to resolve external entities."
+  - id: 3
+    explanation: "Validating file size and content length is good for preventing some DoS attacks, but does nothing to prevent XXE attacks that extract sensitive files or perform SSRF attacks."
+  - id: 4
+    explanation: "The correct fix is to disable external entity resolution entirely by setting noent: false in the libxml options. This prevents the parser from resolving any external entities, eliminating both information disclosure and DoS attack vectors."
+hints:
+  - "Look for where XML is being parsed with libxml.parseXml()."
+  - "Check the parsing options - what do 'noent', 'nocdata', and 'noblanks' do?"
+  - "The 'noent' option controls whether external entities are resolved. What should it be set to?"
+  - "Can you find where the vulnerable XML parsing occurs and what options make it safe?"
