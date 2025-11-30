@@ -13,6 +13,11 @@ import * as accuracy from '../lib/accuracy'
 import * as utils from '../lib/utils'
 import { type ChallengeKey } from 'models/challenge'
 
+// Only allow filenames containing alphanumeric chars, underscores, dashes, and dots (no slashes or traversal)
+function isValidFilename(filename: string): boolean {
+  return /^[\w\-.]+$/.test(filename)
+}
+
 interface SnippetRequestBody {
   challenge: string
 }
@@ -86,6 +91,11 @@ export const checkVulnLines = () => async (req: Request<Record<string, unknown>,
   const selectedLines: number[] = req.body.selectedLines
   const verdict = getVerdict(vulnLines, neutralLines, selectedLines)
   let hint
+  // Sanitize key before using in path expressions
+  if (!isValidFilename(key)) {
+    res.status(400).json({ status: 'error', error: 'Invalid challenge key format.' })
+    return
+  }
   if (fs.existsSync('./data/static/codefixes/' + key + '.info.yml')) {
     const codingChallengeInfos = yaml.load(fs.readFileSync('./data/static/codefixes/' + key + '.info.yml', 'utf8'))
     if (codingChallengeInfos?.hints) {
