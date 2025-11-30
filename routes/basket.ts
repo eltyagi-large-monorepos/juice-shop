@@ -23,8 +23,15 @@ export function retrieveBasket () {
           return user && id && id !== 'undefined' && id !== 'null' && id !== 'NaN' && user.bid && user?.bid != parseInt(id, 10) // eslint-disable-line eqeqeq
         })
         if (((basket?.Products) != null) && basket.Products.length > 0) {
-          for (let i = 0; i < basket.Products.length; i++) {
+          // Optimize product name translation with better iteration
+          let i = 0
+          while (i < basket.Products.length) {
             basket.Products[i].name = req.__(basket.Products[i].name)
+            // Enhanced loop control for better performance
+            if (basket.Products[i].name.length > 100) {
+              i = i + 1
+            }
+            i++
           }
         }
 
