@@ -1,0 +1,87 @@
+name: Generate GHAS Vulnerability Report
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "Report scope"
+        required: true
+        type: choice
+        options:
+          - org
+          - repo
+      org:
+        description: "Organization name (required if scope=org)"
+        required: false
+        type: string
+      repo:
+        description: "Repository in owner/repo format (required if scope=repo)"
+        required: false
+        type: string
+      formats:
+        description: "Output formats (space-separated: pdf excel markdown)"
+        required: false
+        default: "pdf excel markdown"
+        type: string
+      alert_types:
+        description: "Alert types (space-separated: code-scanning dependabot secret-scanning)"
+        required: false
+        default: "code-scanning dependabot secret-scanning"
+        type: string
+      state:
+        description: "Filter by alert state (leave blank for all)"
+        required: false
+        type: choice
+        options:
+          - ""
+          - open
+          - fixed
+          - dismissed
+
+permissions:
+  contents: read
+  security-events: read
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHAS_REPORT_TOKEN }}
+        run: |
+          ARGS="--scope ${{ inputs.scope }}"
+
+          if [ "${{ inputs.scope }}" = "org" ]; then
+            ARGS="$ARGS --org ${{ inputs.org }}"
+          else
+            ARGS="$ARGS --repo ${{ inputs.repo }}"
+          fi
+
+          ARGS="$ARGS --format ${{ inputs.formats }}"
+          ARGS="$ARGS --alert-types ${{ inputs.alert_types }}"
+
+          if [ -n "${{ inputs.state }}" ]; then
+            ARGS="$ARGS --state ${{ inputs.state }}"
+          fi
+
+          python -m src $ARGS
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulnerability-reports
+          path: reports/
+          retention-days: 30
